@@ -1,8 +1,10 @@
-## Matrix Multiply
+## Matrix Multiply Assignment 1 part 1
 
 This program employs two different algorithms for multiplying (n x n) matrices.  
 User input is required for the size of the matrix and the values to fill each matrix with.  
 Each computation is timed, and the results are displayed in the output.  
+
+This corresponds to commit 'edcbdbc' and the next following this push.
 
 ## How to use
 
@@ -13,7 +15,7 @@ Argument 'v' is the value with which to fill the array with.
 
 ## Example
 
-python matrixUtils.py -s 256 -v 2
+    python3 matrixUtils.py -s 256 -v 2
 
 ## Extra info
 
@@ -30,14 +32,19 @@ Finally, you will see the time it took to compute the multiplication using two d
 
 After testing out multiple different sizes of matrices, the blocked algorithm computes faster.
 
--s 256  
-Matrix multiply time: 1.1250 seconds  
-Matrix multiply blocked time: 0.9380 seconds  
+    -s 256  
+    Matrix multiply time: 1.1250 seconds  
+    Matrix multiply blocked time: 0.9380 seconds  
 
--s 512  
-Matrix multiply time: 9.5160 seconds  
-Matrix multiply blocked time: 8.3750 seconds  
+    -s 512  
+    Matrix multiply time: 9.5160 seconds  
+    Matrix multiply blocked time: 8.3750 seconds  
 
--s 1024  
-Matrix multiply time: 78.3440 seconds  
-Matrix multiply blocked time: 66.9680 seconds  
+    -s 1024  
+    Matrix multiply time: 78.3440 seconds  
+    Matrix multiply blocked time: 66.9680 seconds
+
+## CPUINFO
+
+    model name	: AMD Ryzen 9 5900X 12-Core Processor            
+        24     216    1464
