@@ -128,9 +128,13 @@ python3 matrixUtils.py -s 512 -v 2 -p -b
 
 One of the big issues I ran into was trying to get PyMP working in a windows environment.  
 I was unable to figure it out, so I ended up using the provided virtual machine.  
+
 Implementing the algorithms wasn't very difficult. I was able to do that pretty quick.  
 I ended up reverting my original push, which used scan to take the user input for part 1.  
-I decided to do this because implementing the parallel portion was simpler using arguments.    
+I decided to do this because implementing the parallel portion was simpler using arguments.  
+
+If you are using the blocked algorithm, the size must be evenly divisible by the chunk size (16).  
+Entering a number not divisible by 16 and using the -b argument will cause an error.  
 <br>
 <br>
 
