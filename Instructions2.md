@@ -3,7 +3,7 @@
 This program employs two different algorithms for multiplying (n x n) matrices.  
 User input is required for the size of the matrix and the value to fill the matrix with.  
 Another matrix will be generated with the same size and filled with the specified value * 2.  
-Part 2 adds the ability to run the algorithms in serial or parallel.  
+Part 2 adds the ability to run the algorithms in either serial or parallel.  
 Each computation is timed, and the results are displayed in the output.  
 > Use -b to specify the blocked algorithm and -p to specify in parallel.   
 > This corresponds to after the commit '9849f5d'.
