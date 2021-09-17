@@ -1,3 +1,5 @@
+# Seth Melhoff
+import pymp
 import argparse
 import numpy as np
 import time
@@ -56,15 +58,26 @@ def readFromFile(fileName):
 
     return matrix
 
-def multiMatrix(a, b):                                                  # requires (n x n) matrices
-    length = len(a)                                                     # length of matrix, requires square matrix
-    matrix = genMatrix(length, 0)                                       # result matrix filled with 0
+def multiMatrix(a, b):                              # requires (n x n) matrices
+    rowsA = len(a)      # Rows in matrix a
+    rowsB = len(b)      # Rows in matrix b
+    colsA = len(a[0])   # Cols in matrix a
+    colsB = len(b[0])   # Cols in matrix b
+    
+    # For dot product colsA must equal rowsB,
+    # and the result matrix will be (rowsA x colsB),
+    # but we are only using square matrices,
+    # so checking isn't that important.
+    if colsA != rowsB:
+        return None
+    
+    matrix = genMatrix(rowsA, 0)                    # result matrix filled with 0
 
-    for i in range(length):                                             # rows
-        for j in range(length):                                         # columns
-            for k in range(length):                                     # index
-                matrix[i][j] += a[i][k] * b[k][j]                       # multplication result
-    return matrix                                                       #result
+    for i in range(rowsA):                          # rows
+        for j in range(colsB):                      # columns
+            for k in range(colsA):                  # index
+                matrix[i][j] += a[i][k] * b[k][j]   # multplication result
+    return matrix                                   #result
 
 def multiMatrixBlocked(a, b):
     length = len(a)
@@ -83,59 +96,106 @@ def multiMatrixBlocked(a, b):
                     matrix[i][j] = sum
     return matrix
 
+def multiMatrixBlockedParallel(a, b):
+    length = len(a)
+    matrix = pymp.shared.array((length, length), dtype=int)
+    tile_size = 16
+
+    with pymp.Parallel() as p:
+        print(f'Matrix multiply blocked on thread: {p.thread_num} of {p.num_threads}')
+        for kk in p.range(0, length, tile_size):
+            for jj in range(0, length, tile_size):
+                for i in range(0, length):
+                    j_end = jj + tile_size
+                    for j in range(jj, j_end):
+                        k_end = kk + tile_size
+                        sum = matrix[i][j]
+                        for k in range(kk, k_end):
+                            sum = sum + a[i][k] * b[k][j]
+                        matrix[i][j] = sum
+    return matrix
+
+def multiMatrixParallel(a, b):
+    rowsA = len(a)      # Rows in matrix a
+    rowsB = len(b)      # Rows in matrix b
+    colsA = len(a[0])   # Cols in matrix a
+    colsB = len(b[0])   # Cols in matrix b
+    
+    # For dot product colsA must equal rowsB,
+    # and the result matrix will be (rowsA x colsB),
+    # but we are only using square matrices,
+    # so checking isn't that important.
+    if colsA != rowsB:
+        return None
+    
+    matrix = pymp.shared.array((rowsA, colsB), dtype=int)
+    
+    with pymp.Parallel() as p:
+        print(f'Matrix multiply on thread: {p.thread_num} of {p.num_threads}')
+        for i in p.range(rowsA):
+            for j in range(colsB):
+                for k in range(colsA):
+                    matrix[i][j] += a[i][k] * b[k][j]
+    return matrix;
+
 def main():
     """
     Used for running as a script
     """
     parser = argparse.ArgumentParser(description=
-    'Generate a 2d matrix and save it to  a file.')
+    'Generate a 2d matrix of size s filled with value v,'
+    'Creates another matrix of size s filled with value v*2,'
+    'Multiply both matrices in either serial or parallel,'
+    'Serial uses two different algorithms, specified by blocked')
     parser.add_argument('-s', '--size', default=256, type=int,
     help='Size of the 2d matrix to generate')
     parser.add_argument('-v', '--value', default=1, type=int,
     help='The value with which to fill the array with')
-    parser.add_argument('-f', '--filename',
-    help='The name of the file to save the matrix in (optional)')
+    parser.add_argument('-b', '--blocked', action='store_true',
+    help = 'Indicates the use of the blocked algorithm.')
+    parser.add_argument('-p', '--parallel', action='store_true',
+    help = 'Indicates the use of the parallel algorithm.')
 
     args = parser.parse_args()
+    
+    mat = genMatrix(args.size, args.value)              # generate 2d matrix
+    mat2 = genMatrix(args.size, args.value * 2)         # generate 2nd matrix
+    mat3 = None
 
-    mat = genMatrix(args.size, args.value)
-    mat2 = genMatrix(args.size, args.value * 2)
-
-    if args.filename is not None:
-        print(f'Writing matrix to {args.filename}')
-        writeToFile(mat, args.filename)
-
-        print(f'Testing file')
-        printSubarray(readFromFile(args.filename))
-
-    """
-    size = int(input("Enter the size of the matrix to generate: "))
-    if size < 10: size = 10
-    valueA = int(input("Enter the value to fill the first array with: "))
-    valueB = int(input("Enther the value to fill the second array with: "))
-
-    matA = genMatrix(size, valueA)
-    matB = genMatrix(size, valueB)
-    """
-
-    start = time.monotonic()                    # time before computation
-    mat3 = multiMatrix(mat, mat2)
-    elapsed = time.monotonic() - start          # time taken to complete
-
-    start = time.monotonic()
-    mat3 = multiMatrixBlocked(mat, mat2)
-    elapsed2 = time.monotonic() - start
-
-    #matE = np.dot(mat, mat2)                   # used for testing
-
-    print("Matrix 1:")
-    printSubarray(mat)
-    print("Matrix 2:")
-    printSubarray(mat2)
-    print("Matrix 3 (result):")
-    printSubarray(mat3)
-    print("Matrix multiply time: %.4f seconds" % elapsed)
-    print("Matrix multiply blocked time: %.4f seconds" % elapsed2)
+    start = time.monotonic()                                # time before computation
+    if args.parallel:
+        if args.blocked:
+            mat3 = multiMatrixBlockedParallel(mat, mat2)
+        else:
+            mat3 = multiMatrixParallel(mat, mat2)
+    else:
+        if args.blocked:
+            mat3 = multiMatrixBlocked(mat, mat2)
+        else:
+            mat3 = multiMatrix(mat, mat2)
+    elapsed = time.monotonic() - start                      # computation time
+    
+    #mat3 = np.matmul(mat, mat2) # Used for testing
+        
+    if mat3 is None:
+        print("Error: incompatible matrices.")
+    else:
+        print("Matrix 1:")
+        printSubarray(mat)
+        print("Matrix 2:")
+        printSubarray(mat2)
+        print("Matrix 3 (result):")
+        printSubarray(mat3)
+        if args.parallel:
+            if args.blocked:
+                print("Matrix multiply blocked (parallel) time: %.4f seconds" % elapsed)
+            else:
+                print("Matrix multiply (parallel) time: %.4f seconds" % elapsed)
+        else:
+            if args.blocked:
+                print("Matrix multiply blocked (serial) time: %.4f seconds" % elapsed)
+            else:
+                print("Matrix multiply (serial) time: %.4f seconds" % elapsed)
 
 if __name__ == '__main__':
     # execute only if run as a script
