@@ -1,3 +1,27 @@
+## Author
+
+Seth Melhoff  
+UTEP Fall 2021  
+CS 4175: Parallel Computing  
+
+## Info
+
+This repository has been updated for each stage of this assignment.  
+The first part implements a basic serial matrix multiply, with two different algorithms.  
+The second part adds the ability to run both the algorithms in parallel.  
+
+## Part 1
+
+This part was completed in commit: [9849f5d](https://github.com/utep-cs-systems-courses/matrix-multiply-smelhoff/commit/9849f5dbb2bb0f000215ff41cb6ce24b08e51ad1)  
+Instructions and report can be found in: [Instructions](Instructions.md)
+
+## Part 2
+
+This part was completed in commit: [d444cfa](https://github.com/utep-cs-systems-courses/matrix-multiply-smelhoff/commit/d444cfa4fe952b89133bf5da925260931e47dd33)  
+Instructions and report can be found in: [Instructions2](Instructions2.md)
+
+<br>
+
 ## Parallel Computing Matrix Multiply Assignment
 
 This repository contains some basic Python utilities for
